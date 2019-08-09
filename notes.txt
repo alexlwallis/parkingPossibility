@@ -1,0 +1,3 @@
+Ok so what you could do is you use parse.js to output the necessary data in a txt file and
+then have the C++ file read it?
+
