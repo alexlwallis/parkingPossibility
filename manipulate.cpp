@@ -5,6 +5,7 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <math.h>
+#include <typeinfo>
 
 using namespace std;
 
@@ -22,7 +23,7 @@ std::string read(){
     }
     data.close();
   } else {
-    cout << "Unable to read file";
+    std::cout << "Unable to read file";
   }
   //cout << entirity;
   return str;
@@ -32,6 +33,7 @@ std::vector<string> splitting(){
   string data = read();
   vector<string> vec;
   string test;
+  std::cout << "exists" << "\n";
   int pos = 0;
   for (int i=0; i<data.size(); i++){
     if (data[i] == '.'){
@@ -44,25 +46,86 @@ std::vector<string> splitting(){
   // for (int i=0; i<vec.size(); i++){
   //   cout << vec[i] << "\n";
   // }
+  //cout << "\n" << vec[1];
   return vec;
 }
+
+std::string parkingInformation(std::string info){
+  int pos = 0;
+  vector<string> vec;
+  for (int i=0; i<info.size(); i++) {
+    if (info[i] == ','){
+      string sub = info.substr(pos, (i-pos));
+      pos = i;
+      vec.push_back(sub);
+    }
+  }
+  std::string reply;
+
+  std::cout << "vec size: " << vec.size() <<  "\n";
+
+  for (int i=0; i<vec.size(); i++) {
+
+    if (vec[0] == "." && vec[5] == ",NO"){
+      //If 0 index is not a number (it's a dot) and is not biweekly.
+      reply+="Street sweeping outside " + vec[1] + vec[2] + "and is a weekly occurence from " + vec[6];
+      break;
+      //If 0 index is not a number (it's a dot) and is biweekly.
+    } else if (vec[0] == "." && vec[5] == ",YES"){
+      reply+="Street sweeping outside " + vec[1] + vec[2] + "and is a biweekly occurence from " + vec[6];
+      break;
+      //If 0 index is a number and is not biweekly.
+    } else if (vec[0] != "." && vec[4] == ",NO"){
+      reply+="Street sweeping outside " + vec[0] + vec[1] + "and is a weekly occurence from " + vec[5];
+      break;
+       //If 0 index is a number and is biweekly.
+    } else if (vec[0] != "." && vec[4] == ",YES"){
+      reply+="Street sweeping outside " + vec[0] + vec[1] + "and is a biweekly occurence from " + vec[5];
+      break;
+        //Need to check if first index is a number
+      //If it is then [0] is st#, [1] is st, [2] is even/odd, [3] is weekly?, [4] is biweekly, [5] is time
+    //If its not, then shift all the indexes above up one.
+    //Essentially it's gonna be a lot of if statements, and depending on the statement it'll be formatted for the reply string
+      //ie. check if index 2? is even or odd, if its odd then say that this is all for the odd numbers on the st.
+    }
+  }
+
+  for (int i=0; i<reply.size(); i++){
+    if (reply[24] == ','){
+      cout <<  "got here" << "\n";
+      reply.erase(reply.begin() + 24);
+    }
+  }
+
+  std::cout << "parking info: " << "\n" << reply << "\n";
+  return reply;
+}
+
 
 std::string filter(std::string streetName, int streetNumber){
   vector<string> vec = splitting();
 
-  string streetNameInput = streetName;
-  int streetNumberInput = streetNumber;
-
-  vector<string> filterStreetName;
-  //cout << vec[30].find(stname) << "\n";
-  for (int i=0; i<vec.size(); i++) {
-    //https://stackoverflow.com/questions/40608111/why-is-18446744073709551615-1-true
-    if (vec[i].find(streetNameInput) > 0 && vec[i].find(streetNameInput) < 18446744073709551615){
-      //cout << vec[i] << "\n";
-      filterStreetName.push_back(vec[i]);
+  string streetNameInput;
+  for (int i=0; i<streetName.size(); i++) {
+    if (streetName[i] != ' ') {
+      streetNameInput+=toupper(streetName[i]);
+    } else if (streetName[i] == ' ') {
+      cout << "there is a space? " <<  "\n";
+      streetNameInput+=streetName[i];
     }
   }
 
+  cout << "this is streetNameInput: " << streetNameInput << "\n";
+
+  int streetNumberInput = streetNumber;
+
+  vector<string> filterStreetName;
+  for (int i=0; i<vec.size(); i++) {
+    //https://stackoverflow.com/questions/40608111/why-is-18446744073709551615-1-true
+    if (vec[i].find(streetNameInput) > 0 && vec[i].find(streetNameInput) < 18446744073709551615){
+      filterStreetName.push_back(vec[i]);
+    }
+  }
 
   //for streetNumbers you need to check if the input is odd or even and then from
   //there you need to round it down to the hundredths place
@@ -75,8 +138,6 @@ std::string filter(std::string streetName, int streetNumber){
   //Get number and replace last two digits w/ 0s. substr?
   string alteredStInput = to_string(streetNumberInput);
   alteredStInput = alteredStInput.replace(alteredStInput.size()-2, 2, "00");
-
-
 
   string correctAddress;
   for (int i=0; i<filterStreetName.size(); i++) {
@@ -94,22 +155,22 @@ std::string filter(std::string streetName, int streetNumber){
       }
     }
   }
-  return correctAddress;
-
+  return parkingInformation(correctAddress);
 }
-
-
 
 
 
 int main(){
   string street;
-  int number;
-  cout << "What street are you outside of?" << "\n";
-  cin >> street;
-  cout << "What is the street number nearest you" << "\n";
-  cin >> number;
-  filter(street, number);
+  int num;
+  //Doesn't like me using a space in input??
+  std::cout << "What street are you outside of?" << "\n";
+  // cin >> noskipws >> street;
+  std::getline(std::cin, street);
+  std::cout << "What street number are you outside of?" << "\n";
+  cin >> num;
+  cout << street << "," <<  num << "\n";
+  filter(street, num);
   return 0;
 }
 
